@@ -1,4 +1,4 @@
-export const MODULE_ADDRESS = "0x42c1c1c959c6739a3c17fdf5e6e22d85bb5e3834e47c5830330dbce0a0c486b7";
+export const MODULE_ADDRESS = "0xf299da7a09907bb037f4aeab66cfc25e0c76bfe7b87c395a6c48a1df21077f09";
 
 export const MarketModule = {
   MODULE_NAME: "market",
