@@ -39,7 +39,7 @@ const RootLayout = ({ children }: PropsWithChildren) => {
         >
           <QueryProvider>
             <WalletProvider>
-              <main className="flex flex-col w-full max-w-[1000px] p-6 pb-12 md:px-8 gap-6">
+              <main className="flex flex-col w-full max-w-[1000px] p-6 pb-12 md:px-8">
                 {/* <WrongNetworkAlert /> */}
                 <RootHeader />
                 {children}

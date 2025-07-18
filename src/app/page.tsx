@@ -491,13 +491,12 @@ export default function HomePage() {
           <Card>
             <CardHeader>
               <CardTitle className="text-lg">Activity Feed</CardTitle>
-              <p className="text-sm text-muted-foreground">Recent discussions and participant activity</p>
             </CardHeader>
             <CardContent className="p-0">
               <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <TabsList className="grid w-full grid-cols-2 mx-4 mb-4">
-                  <TabsTrigger value="tweets">Latest Tweets</TabsTrigger>
-                  <TabsTrigger value="participants">Participants</TabsTrigger>
+                <TabsList className="inline-flex mx-4 mb-4 w-auto">
+                  <TabsTrigger value="tweets" className="px-4 py-2">Latest Tweets</TabsTrigger>
+                  <TabsTrigger value="participants" className="px-4 py-2">Participants</TabsTrigger>
                 </TabsList>
                 <TabsContent value="tweets" className="mt-0">
                   <Tweets
