@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/components/ui/use-toast";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Clock, 
   TrendingUp, 
@@ -26,9 +27,37 @@ import { UserPosition } from "@/components/UserPosition";
 import { Market, Position, PositionView } from "@/lib/type/market";
 import { usePredictionMarket } from "@/contract";
 import { useWallet } from "@aptos-labs/wallet-adapter-react";
+import Tweets, { Tweet } from "@/components/Tweets";
+import { useQuery } from "@tanstack/react-query";
+import { fetchApi } from "@/lib/api";
+import ParticipantsTable, { User } from "@/components/ParticipantsTable";
+import PriceChart from "@/components/PriceChart";
 
 // 真实的市场ID
 const DEMO_MARKET_ID = "0x6aaeea3d012eb3cc9431cc9266e974c627bccc4b200f0fc7bfbd9425cf364ace";
+
+async function fetchUsers(): Promise<User[]> {
+  const endpoint = `/api/v1/campaigns/stablecoin/users`;
+  const response = await fetchApi(endpoint);
+
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
+  }
+
+  return response.json();
+}
+
+
+async function fetchTweets(): Promise<Tweet[]> {
+  const endpoint = `/api/v1/campaigns/stablecoin/tweets`;
+  const response = await fetchApi(endpoint);
+
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
+  }
+
+  return response.json();
+}
 
 export default function HomePage() {
   const router = useRouter();
@@ -46,11 +75,37 @@ export default function HomePage() {
   const [showSettleMarket, setShowSettleMarket] = useState(false);
   const [selectedDirection, setSelectedDirection] = useState<boolean>(true); // true为看涨，false为看跌
   const [refreshing, setRefreshing] = useState(false);
+  const [activeTab, setActiveTab] = useState<string>("tweets");
+
+  // Move useQuery hook to the top, before any conditional logic
+  const {
+    data: tweets = [],
+    isLoading: tweetsLoading,
+    isError: tweetsError,
+    refetch: refetchTweets,
+  } = useQuery<Tweet[], Error>({
+    queryKey: ['campaign-tweets'],
+    queryFn: () => fetchTweets(),
+  });
+
+  const {
+    data: users = [],
+    isLoading: usersLoading,
+    isError: usersError,
+    refetch: refetchUsers,
+  } = useQuery<User[], Error>({
+    queryKey: ['campaign-users'],
+    queryFn: () => fetchUsers(),
+  });
 
   // 获取市场信息
   const fetchMarketData = async () => {
     try {
       setRefreshing(true);
+      
+      // 刷新推文数据和用户数据
+      refetchTweets();
+      refetchUsers();
       
       // 使用真实的合约调用
       try {
@@ -297,40 +352,21 @@ export default function HomePage() {
   const totalStake = poolABalance + poolBBalance;
   const aPercentage = totalStake > 0 ? (poolABalance / totalStake) * 100 : 50;
   const bPercentage = totalStake > 0 ? (poolBBalance / totalStake) * 100 : 50;
-
+  
   return (
     <div className="container mx-auto px-4 py-8 max-w-7xl">
-      {/* Header */}
-      <div className="flex justify-between items-start mb-8">
-        <div>
-          <h1 className="text-3xl font-bold mb-2">Prediction Market</h1>
-          <p className="text-muted-foreground">
-            Participate in decentralized prediction markets on Aptos blockchain
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
+      {/* Settle button positioned absolutely at top right */}
+        {connected && market && market.status === true && (
           <Button
-            onClick={() => router.push("/create")}
+            onClick={() => setShowSettleMarket(true)}
             variant="outline"
-            className="flex items-center gap-2"
+            size="sm"
+            className="fixed bottom-4 left-4 z-50 flex items-center gap-2"
           >
-            <Plus className="h-4 w-4" />
-            Create Market
+            <Settings className="h-4 w-4" />
+            Settle
           </Button>
-          
-          {connected && market && market.status === true && (
-            <Button
-              onClick={() => setShowSettleMarket(true)}
-              variant="outline"
-              size="sm"
-              className="flex items-center gap-2"
-            >
-              <Settings className="h-4 w-4" />
-              Settle
-            </Button>
-          )}
-        </div>
-      </div>
+        )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* 左侧：市场详情 */}
@@ -356,6 +392,8 @@ export default function HomePage() {
               </div>
             </CardHeader>
           </Card>
+
+          <PriceChart />
 
           {/* 投注选项 */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -448,9 +486,36 @@ export default function HomePage() {
           />
         </div>
 
-        {/* 右侧：预留空间（已删除市场热度和热点话题组件） */}
+        {/* 右侧：活动信息 */}
         <div className="space-y-6">
-          {/* 预留空间，用户可以稍后添加自定义组件 */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Activity Feed</CardTitle>
+              <p className="text-sm text-muted-foreground">Recent discussions and participant activity</p>
+            </CardHeader>
+            <CardContent className="p-0">
+              <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                <TabsList className="grid w-full grid-cols-2 mx-4 mb-4">
+                  <TabsTrigger value="tweets">Latest Tweets</TabsTrigger>
+                  <TabsTrigger value="participants">Participants</TabsTrigger>
+                </TabsList>
+                <TabsContent value="tweets" className="mt-0">
+                  <Tweets
+                    data={tweets}
+                    isLoading={tweetsLoading}
+                    isError={tweetsError}
+                  />
+                </TabsContent>
+                <TabsContent value="participants" className="mt-0">
+                  <ParticipantsTable
+                    data={users}
+                    isLoading={usersLoading}
+                    isError={usersError}
+                  />
+                </TabsContent>
+              </Tabs>
+            </CardContent>
+          </Card>
         </div>
       </div>
 
