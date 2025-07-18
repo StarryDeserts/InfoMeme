@@ -28,7 +28,7 @@ import { usePredictionMarket } from "@/contract";
 import { useWallet } from "@aptos-labs/wallet-adapter-react";
 
 // 真实的市场ID
-const DEMO_MARKET_ID = "0x228ce72412e3a8a942b1fa94052638941fb6aa2bc8673045e13ad6529d9a95ed";
+const DEMO_MARKET_ID = "0x6aaeea3d012eb3cc9431cc9266e974c627bccc4b200f0fc7bfbd9425cf364ace";
 
 export default function HomePage() {
   const router = useRouter();
