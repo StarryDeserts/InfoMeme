@@ -18,8 +18,8 @@ const fontSans = FontSans({
 });
 
 export const metadata: Metadata = {
-  title: "Aptos Full Stack Demo",
-  description: "A demo of a full stack app on Aptos",
+  title: "Info Meme",
+  description: "",
 };
 
 const RootLayout = ({ children }: PropsWithChildren) => {
@@ -40,7 +40,7 @@ const RootLayout = ({ children }: PropsWithChildren) => {
           <QueryProvider>
             <WalletProvider>
               <main className="flex flex-col w-full max-w-[1000px] p-6 pb-12 md:px-8 gap-6">
-                <WrongNetworkAlert />
+                {/* <WrongNetworkAlert /> */}
                 <RootHeader />
                 {children}
                 <Toaster />

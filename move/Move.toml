@@ -1,0 +1,16 @@
+[package]
+name = "prediction_market"
+version = "1.0.0"
+authors = []
+
+[addresses]
+prediction = "0x9ea9300f026b774afd2bc3054707615e71ac4883c9f4bffa3613f7e308da824b"
+origin = "0x110c0e6e7192bcc4cb6b4e1dcda49d1366c44f3f0cf17e18e1cec5b93aa0ea79"
+[dev-addresses]
+
+[dependencies.AptosFramework]
+git = "https://github.com/aptos-labs/aptos-framework.git"
+rev = "mainnet"
+subdir = "aptos-framework"
+
+[dev-dependencies]
