@@ -1,5 +1,5 @@
 import { Hex } from "@aptos-labs/ts-sdk";
-import { getAptosClient } from "../lib/aptos";
+import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
 import { useWallet } from "@aptos-labs/wallet-adapter-react";
 import { Market, Position } from "../lib/type/market";
 import {
@@ -9,7 +9,8 @@ import {
 } from "../constant";
 
 export const usePredictionMarket = () => {
-    const aptos = getAptosClient();
+    const config = new AptosConfig({network: Network.TESTNET})
+    const aptos = new Aptos(config);;
     const { account, signAndSubmitTransaction } = useWallet();
 
     const createMarket = async (
