@@ -34,7 +34,7 @@ import ParticipantsTable, { User } from "@/components/ParticipantsTable";
 import PriceChart from "@/components/PriceChart";
 
 // 真实的市场ID
-const DEMO_MARKET_ID = "0x6aaeea3d012eb3cc9431cc9266e974c627bccc4b200f0fc7bfbd9425cf364ace";
+const DEMO_MARKET_ID = "0xd0bcd23f797f7198723370079119890a3fb6bdd2f5bb5e015f0db06fc5aef233";
 
 async function fetchUsers(): Promise<User[]> {
   const endpoint = `/api/v1/campaigns/stablecoin/users`;
