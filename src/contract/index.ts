@@ -132,12 +132,12 @@ export const usePredictionMarket = () => {
     };
 
     const getPositionInfo = async (
-        market_id: string,
-        player_address: string
+        player_address: string,
+        market_id: string
     ): Promise<Position> => {
         const position_info_payload = {
             function: `${MODULE_ADDRESS}::${MarketModule.MODULE_NAME}::${MarketModule.FUNCTIONS.GET_PLAYER_POSITION_INFO}` as `${string}::${string}::${string}`,
-            functionArguments: [market_id, player_address]
+            functionArguments: [player_address, market_id]
         };
 
         const position_info = await aptos.view({payload: position_info_payload});

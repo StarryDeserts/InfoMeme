@@ -15,11 +15,14 @@ import {
   Plus,
   CheckCircle,
   XCircle,
-  AlertTriangle
+  AlertTriangle,
+  Settings
 } from "lucide-react";
 
 import { EnterPosition } from "@/components/EnterPosition";
 import { ClaimWinnings } from "@/components/ClaimWinnings";
+import { SettleMarket } from "@/components/SettleMarket";
+import { UserPosition } from "@/components/UserPosition";
 import { Market, Position, PositionView } from "@/lib/type/market";
 import { usePredictionMarket } from "@/contract";
 import { useWallet } from "@aptos-labs/wallet-adapter-react";
@@ -31,7 +34,7 @@ export default function HomePage() {
   const router = useRouter();
   const { toast } = useToast();
   const { account, connected } = useWallet();
-  const { getMarketInfo, getPositionInfo, enterPosition, claimWinnings, getAPoolBalanceAmount, getBPoolBalanceAmount } = usePredictionMarket();
+  const { getMarketInfo, getPositionInfo, enterPosition, claimWinnings, settleMarket, getAPoolBalanceAmount, getBPoolBalanceAmount } = usePredictionMarket();
   
   const [market, setMarket] = useState<Market | null>(null);
   const [userPosition, setUserPosition] = useState<PositionView | null>(null);
@@ -40,6 +43,7 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true);
   const [showEnterPosition, setShowEnterPosition] = useState(false);
   const [showClaimWinnings, setShowClaimWinnings] = useState(false);
+  const [showSettleMarket, setShowSettleMarket] = useState(false);
   const [selectedDirection, setSelectedDirection] = useState<boolean>(true); // true为看涨，false为看跌
   const [refreshing, setRefreshing] = useState(false);
 
@@ -164,6 +168,28 @@ export default function HomePage() {
     }
   };
 
+  // 处理结算市场
+  const handleSettleMarket = async (marketId: string, winningSide: boolean) => {
+    try {
+      await settleMarket(marketId, winningSide);
+      
+      toast({
+        title: "Success",
+        description: `Market settled successfully! ${winningSide ? 'Side A (Yes)' : 'Side B (No)'} won.`,
+      });
+      
+      setShowSettleMarket(false);
+      await fetchMarketData(); // 刷新数据
+    } catch (error) {
+      console.error("Error settling market:", error);
+      toast({
+        title: "Error",
+        description: "Failed to settle market",
+        variant: "destructive",
+      });
+    }
+  };
+
   // 格式化数字
   const formatStake = (stake: number | string) => {
     const num = typeof stake === 'string' ? parseInt(stake) : stake;
@@ -212,20 +238,20 @@ export default function HomePage() {
     if (!market.status) {
       const winningSide = market.winning_side;
       if (winningSide === null) {
-        return <Badge variant="secondary">暂未决出</Badge>;
+        return <Badge variant="secondary">Pending</Badge>;
       }
       return (
         <Badge variant={winningSide ? "default" : "destructive"}>
-          已结算 - {winningSide ? "看涨" : "看跌"} 获胜
+          Settled - {winningSide ? "Bullish" : "Bearish"} Won
         </Badge>
       );
     }
     
     const now = Date.now() / 1000;
     if (market.close_time <= now) {
-      return <Badge variant="destructive">已关闭</Badge>;
+      return <Badge variant="destructive">Closed</Badge>;
     }
-    return <Badge variant="default">进行中</Badge>;
+    return <Badge variant="default">Active</Badge>;
   };
 
   // 检查是否可以下注
@@ -277,19 +303,33 @@ export default function HomePage() {
       {/* Header */}
       <div className="flex justify-between items-start mb-8">
         <div>
-          <h1 className="text-3xl font-bold mb-2">预测市场</h1>
+          <h1 className="text-3xl font-bold mb-2">Prediction Market</h1>
           <p className="text-muted-foreground">
-            参与去中心化预测市场，基于 Aptos 区块链
+            Participate in decentralized prediction markets on Aptos blockchain
           </p>
         </div>
-        <Button 
-          onClick={() => router.push("/create")}
-          variant="outline"
-          className="flex items-center gap-2"
-        >
-          <Plus className="h-4 w-4" />
-          创建市场
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            onClick={() => router.push("/create")}
+            variant="outline"
+            className="flex items-center gap-2"
+          >
+            <Plus className="h-4 w-4" />
+            Create Market
+          </Button>
+          
+          {connected && market && market.status === true && (
+            <Button
+              onClick={() => setShowSettleMarket(true)}
+              variant="outline"
+              size="sm"
+              className="flex items-center gap-2"
+            >
+              <Settings className="h-4 w-4" />
+              Settle
+            </Button>
+          )}
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -308,7 +348,7 @@ export default function HomePage() {
                     </div>
                     <div className="flex items-center gap-1">
                       <Users className="h-4 w-4" />
-                      总投注: {formatStake(totalStake)} tokens
+                      Total Stake: {formatStake(totalStake)} tokens
                     </div>
                   </div>
                 </div>
@@ -319,14 +359,14 @@ export default function HomePage() {
 
           {/* 投注选项 */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* 看涨选项 */}
+            {/* Bullish Option */}
             <Card className="bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800">
               <CardContent className="p-6">
                 <div className="flex justify-between items-center mb-4">
                   <div className="flex items-center gap-2">
                     <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400" />
                     <h3 className="font-semibold text-green-700 dark:text-green-300">
-                      看涨 (Yes)
+                      Bullish (Yes)
                     </h3>
                   </div>
                   <span className="text-sm font-medium bg-green-100 dark:bg-green-900/40 px-2 py-1 rounded">
@@ -340,7 +380,7 @@ export default function HomePage() {
                   </div>
                   <Progress value={aPercentage} className="h-2" />
                   <div className="text-sm text-muted-foreground">
-                    {aPercentage.toFixed(1)}% 的总投注
+                    {aPercentage.toFixed(1)}% of total stake
                   </div>
                 </div>
 
@@ -348,24 +388,24 @@ export default function HomePage() {
                   <Button
                     className="w-full mt-4"
                     onClick={() => {
-                      setSelectedDirection(true); // 设置选择的方向为看涨 (true)
+                      setSelectedDirection(true); // Set direction to bullish (true)
                       setShowEnterPosition(true);
                     }}
                   >
-                    投注看涨
+                    Bet Bullish
                   </Button>
                 )}
               </CardContent>
             </Card>
 
-            {/* 看跌选项 */}
+            {/* Bearish Option */}
             <Card className="bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800">
               <CardContent className="p-6">
                 <div className="flex justify-between items-center mb-4">
                   <div className="flex items-center gap-2">
                     <XCircle className="h-5 w-5 text-red-600 dark:text-red-400" />
                     <h3 className="font-semibold text-red-700 dark:text-red-300">
-                      看跌 (No)
+                      Bearish (No)
                     </h3>
                   </div>
                   <span className="text-sm font-medium bg-red-100 dark:bg-red-900/40 px-2 py-1 rounded">
@@ -379,7 +419,7 @@ export default function HomePage() {
                   </div>
                   <Progress value={bPercentage} className="h-2" />
                   <div className="text-sm text-muted-foreground">
-                    {bPercentage.toFixed(1)}% 的总投注
+                    {bPercentage.toFixed(1)}% of total stake
                   </div>
                 </div>
 
@@ -388,61 +428,24 @@ export default function HomePage() {
                     className="w-full mt-4"
                     variant="destructive"
                     onClick={() => {
-                      setSelectedDirection(false); // 设置选择的方向为看跌 (false)
+                      setSelectedDirection(false); // Set direction to bearish (false)
                       setShowEnterPosition(true);
                     }}
                   >
-                    投注看跌
+                    Bet Bearish
                   </Button>
                 )}
               </CardContent>
             </Card>
           </div>
 
-          {/* 用户持仓信息 */}
-          {userPosition && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Trophy className="h-5 w-5" />
-                  我的持仓
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div>
-                    <div className="text-sm text-muted-foreground">方向</div>
-                    <Badge variant={userPosition.direction ? "default" : "destructive"}>
-                      {userPosition.direction ? "看涨" : "看跌"}
-                    </Badge>
-                  </div>
-                  <div>
-                    <div className="text-sm text-muted-foreground">投注金额</div>
-                    <div className="font-medium">{formatStake(userPosition.stake_amount)} tokens</div>
-                  </div>
-                  <div>
-                    <div className="text-sm text-muted-foreground">有效投注</div>
-                    <div className="font-medium">{formatStake(userPosition.effective_stake)} tokens</div>
-                  </div>
-                  <div>
-                    <div className="text-sm text-muted-foreground">潜在收益</div>
-                    <div className="font-medium text-green-600">
-                      {(parseInt(userPosition.effective_stake) * getOdds(userPosition.direction ? 'a' : 'b') / 1000000000).toFixed(2)} tokens
-                    </div>
-                  </div>
-                </div>
-
-                {canClaimWinnings() && (
-                  <Button
-                    className="w-full mt-4"
-                    onClick={() => setShowClaimWinnings(true)}
-                  >
-                    领取奖金
-                  </Button>
-                )}
-              </CardContent>
-            </Card>
-          )}
+          {/* User Position Information */}
+          <UserPosition
+            market={market}
+            poolABalance={poolABalance}
+            poolBBalance={poolBBalance}
+            onClaimWinnings={() => setShowClaimWinnings(true)}
+          />
         </div>
 
         {/* 右侧：预留空间（已删除市场热度和热点话题组件） */}
@@ -479,14 +482,27 @@ export default function HomePage() {
         </div>
       )}
 
-      {/* 刷新按钮 */}
+      {/* 结算市场弹窗 */}
+      {showSettleMarket && market && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-background rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
+            <SettleMarket
+              market={market}
+              onMarketSettled={handleSettleMarket}
+              onCancel={() => setShowSettleMarket(false)}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Refresh Button */}
       <Button
         onClick={fetchMarketData}
         disabled={refreshing}
         className="fixed bottom-4 right-4"
         size="sm"
       >
-        {refreshing ? "刷新中..." : "刷新数据"}
+        {refreshing ? "Refreshing..." : "Refresh Data"}
       </Button>
     </div>
   );

@@ -354,12 +354,21 @@ export function SettleMarket({
 
         {!canSettle() && (
           <div className="text-center py-4">
-            <p className="text-sm text-muted-foreground">
-              {market.winning_side !== null 
+            <p className="text-sm text-muted-foreground mb-4">
+              {market.winning_side !== null
                 ? "This market has already been settled"
                 : "This market is not ready for settlement"
               }
             </p>
+            {onCancel && (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={onCancel}
+              >
+                Close
+              </Button>
+            )}
           </div>
         )}
       </CardContent>

@@ -18,8 +18,8 @@ const fontSans = FontSans({
 });
 
 export const metadata: Metadata = {
-  title: "Info Meme",
-  description: "",
+  title: "Prediction Market",
+  description: "Participate in decentralized prediction markets on Aptos blockchain",
 };
 
 const RootLayout = ({ children }: PropsWithChildren) => {
