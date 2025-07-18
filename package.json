@@ -30,7 +30,7 @@
     "@radix-ui/react-toast": "^1.1.5",
     "@radix-ui/react-tooltip": "^1.1.2",
     "@tanstack/react-query": "^5.56.2",
-    "@tanstack/react-table": "^8.19.2",
+    "@tanstack/react-table": "^8.21.3",
     "@thalalabs/surf": "^1.9.5",
     "antd": "^5.1.2",
     "class-variance-authority": "^0.7.0",
@@ -41,6 +41,7 @@
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-hook-form": "^7.52.1",
+    "recharts": "^3.1.0",
     "tailwind-merge": "^2.5.2",
     "tailwindcss-animate": "^1.0.7",
     "zod": "^3.23.8"
