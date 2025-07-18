@@ -1,71 +1,77 @@
-# Aptos full stack template UI
+# InfoMeme: Where Attention Becomes an Asset
 
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+**标语: 预测热点，引爆Meme，将影响力直接变现。**
 
-## Reading data from indexer DB
+## 1. 项目愿景：构建新一代信息市场
 
-Currently the frontend is set to read data from neon postgres which is the DB used by the Rust indexer. If you use the TypeScript indexer, that will write to a local sqlite DB and you can update the frontend code accordingly.
+InfoMeme 不仅仅是一个预测市场。我们正在构建一个将**社交热度**、**群体智慧**和**个人影响力**深度融合的去中心化平台。
 
-## Local development
+在 InfoMeme，任何一个引爆全网的热点、一个充满争议的话题、或是一场万众瞩目的投票，都可以成为一个可供交易的市场。我们相信，信息的价值不仅在于其最终结果，更在于其传播过程中的热度与共识。
 
-This template uses `@neondatabase/serverless` to connect to a Postgres database. When testing locally, you can connect to a dev branch of neon DB because neon DB doesn't support local development.
+我们的目标是：让每一个用户都能通过自己敏锐的判断力和独特的社交影响力，从信息的生命周期中捕获价值。
 
-## Create a read only user in DB
+## 2. 核心创新：我们的“Alpha”
 
-Frontend should only read from the DB, the indexer is the only one that writes to the DB. So, create a read only user in the DB for frontend to use prevent any accidental write operations.
+InfoMeme 通过两大核心创新，彻底颠覆了传统预测市场的玩法：
 
-```sql
--- Create a readonly user
--- Please don't use any special characters in the password to avoid db sdk give invalid connection string error
-CREATE USER readonly WITH PASSWORD 'strong_password'
--- Grant readonly user read access to all tables in public schema
-GRANT SELECT ON ALL TABLES IN SCHEMA public TO readonly;
--- Grant readonly user read access to all future tables in public schema
-ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO readonly;
-```
+### a. 分时加权权益 (Time-Weighted Staking)
 
-Some useful SQLs to check the user and schema:
+这是我们游戏机制的基石。我们认为，**更早的信念值得更高的回报**。
 
-```sql
--- Get all users
-SELECT * FROM pg_user;
--- Get all schemas
-SELECT schema_name FROM information_schema.schemata;
-```
+- **工作原理**: 用户的有效权益（即决定其奖金份额的权重）会根据其入场时间动态计算。公式为 `有效权益 = 投入金额 * √(剩余时间 / 总时间)`。
+- **策略深度**: 这创造了一个全新的博弈维度。用户不再是简单地预测“对”或“错”，而是需要在“信息的确定性”和“时间的有效性”之间做出权衡。
+- **机制优势**:
+  - **奖励早期信念**: 极大地激励了那些在信息尚不明确时就敢于承担风险的早期参与者。
+  - **防止最后狙击**: 从机制上杜绝了掌握内幕消息者在最后一秒入场“收割”的行为，保护了市场的公平性。
 
-Then fill the `POSTGRES_URL` in `.env` file with the readonly user.
+### b. 传播即挖矿 (Mindshare-to-Earn)
 
-## Getting Started
+这是我们增长飞轮的引擎。我们认为，**影响力本身就是一种可量化的资产**。
 
-First, run the development server:
+- **工作原理**:
+  1. **数据追踪**: 我们强大的链下数据基建（[Foxhole](https://foxhole.bot/)）会持续追踪并分析与市场话题相关的推特讨论，识别出关键的传播者和贡献者。
+  2. **手续费入库**: 每个市场结算时，总资金池的固定百分比（例如5%）将作为手续费，自动进入一个公开透明的“社区金库”。
+  3. **精准空投**: 市场结束后，我们会根据链下分析的“贡献值”数据，将社区金库中的奖励精准地空投给那些为话题传播做出贡献的用户。
+- **价值闭环**: 这创造了一个完美的价值闭环。用户不仅可以通过预测获利，更能通过其固有的社交影响力，将每一次转发、评论和点赞，都转化为实实在在的收益。
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## 3. 玩法流程：我的双重收益之旅
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+作为一名用户，您在 InfoMeme 的旅程将是激动人心的：
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+<img src="public/InfoMeme.png" alt="InfoMeme" style="zoom:40%;" />
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+## 4. 技术架构与演进路线
 
-## Learn More
+InfoMeme 构建在高性能的 **Aptos** 区块链之上，利用 **Move** 语言的安全性为用户资产保驾护航。
 
-To learn more about Next.js, take a look at the following resources:
+### a. MVP 阶段 (当前)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+为了快速验证核心玩法，我们的 MVP 版本采用了**P2P（点对点）资金池模型**并引入了**用户领取 (Claim)** 机制。
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+- **模型**: 赢家的奖金直接来源于输家的资金池。
+- **结算**: 采用管理员提交结果（模拟预言机）+ 用户主动 `claim_winnings` 的模式，兼顾了安全性和去中心化特性。
+- **目的**: 此阶段的核心是向世界证明，我们的“分时加权”和“传播者奖励”两大机制是可行且极具吸引力的。
 
-## Deploy on Vercel
+### b. 愿景 (V2 及未来)
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+我们的最终目标是构建一个拥有深度流动性和专业级体验的**全功能 AMM 预测市场**。
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+- **演进方向**: 我们将引入基于 **LMSR (对数市场评分规则)** 的 AMM 算法，将 P2P 模型升级为流动性池模型。
+- **为何升级**:
+  - **无限流动性**: AMM 确保市场永远有对手盘，用户随时可以交易。
+  - **价格发现**: 结果代币的价格将实时反映市场概率，提供更丰富的交易信息。
+  - **资本效率**: 允许流动性提供者参与，并通过手续费和代币激励获利，从而创造更深的市场。
+- **最终形态**: **AMM 交易引擎 + 分时加权博弈层 + 传播者奖励增长飞轮**，三者结合，将构成 InfoMeme 独一无二的强大护城河。
+
+## 5. InfoMeme 增长飞轮
+
+我们的三大核心系统共同构成了一个强大的、自我强化的增长飞轮：
+
+1. **Foxhole 系统**捕捉全网热点，自动生成源源不断的优质市场内容。
+2. **分时加权预测市场**以其独特的博弈性吸引用户参与和投入资金。
+3. **传播者奖励**激励所有参与者在链下进行社交传播，进一步扩大话题热度。
+4. 被放大的**话题热度**又会被 Foxhole 系统捕捉，从而创造出新的市场机会。
+
+这是一个循环往复、不断加速的增长闭环。
+
+**加入我们，一起定义信息的未来。**
