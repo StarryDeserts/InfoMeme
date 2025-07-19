@@ -1,5 +1,5 @@
 export async function fetchApi(endpoint: string, options: RequestInit = {}) {
-  const url = 'http://localhost:3030' + endpoint;
+  const url = 'https://foxhole.bot' + endpoint;
 
   // Create headers with Authorization if we have a token
   const headers = new Headers(options.headers || {});
